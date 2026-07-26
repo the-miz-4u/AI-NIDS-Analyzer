@@ -6,6 +6,7 @@ import warnings
 from flask import Flask, request, jsonify
 from google import genai
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify, render_template
 
 warnings.filterwarnings("ignore", category=UserWarning)
 load_dotenv()
@@ -16,6 +17,10 @@ with open('nids_model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict_traffic():
@@ -45,7 +50,7 @@ def predict_traffic():
             
             # Sahi aur active model use kar rahe hain
             ai_response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-3.5-flash',
                 contents=prompt,
             )
             response['ai_explanation'] = ai_response.text
