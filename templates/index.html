@@ -1,10 +1,176 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>NIDS AI Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI NIDS Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #30363d;
+        }
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+        .input-section {
+            margin-bottom: 25px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            background-color: #010409;
+            color: #58a6ff;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        .buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        #scanBtn {
+            background-color: #238636;
+            color: white;
+        }
+        #scanBtn:hover { background-color: #2ea043; }
+        
+        #loadSampleBtn {
+            background-color: #1f6feb;
+            color: white;
+        }
+        #loadSampleBtn:hover { background-color: #388bfd; }
+
+        .result-card {
+            display: none;
+            background-color: #010409;
+            border-left: 5px solid #238636;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .malicious { border-left-color: #da3633; }
+        .safe { border-left-color: #238636; }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .badge-malicious { background-color: #da3633; color: white; }
+        .badge-safe { background-color: #238636; color: white; }
+        
+        #aiExplanation {
+            color: #ff7b72;
+            font-style: italic;
+            margin-top: 15px;
+            border-top: 1px dashed #30363d;
+            padding-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to AI-Powered Network Intrusion Analyzer 🛡️</h1>
-    <p>Hamara dashboard yahan aayega!</p>
+
+<div class="container">
+    <h1>🛡️ AI-Powered Network Intrusion Analyzer</h1>
+    
+    <div class="input-section">
+        <label for="packetData"><strong>Raw Network Features (Comma separated numerical values):</strong></label><br><br>
+        <textarea id="packetData" placeholder="Enter 15 network features here..."></textarea>
+        
+        <div class="buttons">
+            <button id="loadSampleBtn" onclick="loadSample()">Load Sample Attack</button>
+            <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
+        </div>
+    </div>
+
+    <div id="resultCard" class="result-card">
+        <h3>Analysis Result:</h3>
+        <span id="statusBadge" class="status-badge"></span>
+        <p><strong>Prediction Code:</strong> <span id="predCode"></span></p>
+        <div id="aiExplanation"></div>
+    </div>
+</div>
+
+<script>
+    // Ye function dummy data box mein daal dega taaki bar-bar type na karna pade
+    function loadSample() {
+        document.getElementById('packetData').value = "17, 49830, 4, 0, 2048, 0, 512.0, 0.0, 80.2, 0.0, 16610.0, 0.0, 16610.0, 80.2, 41062.4";
+    }
+
+    async function analyzeTraffic() {
+        const rawData = document.getElementById('packetData').value;
+        if(!rawData) {
+            alert("Please enter network features first!");
+            return;
+        }
+
+        // String ko array of numbers mein convert karna
+        const featuresArray = rawData.split(',').map(item => parseFloat(item.trim()));
+
+        document.getElementById('scanBtn').innerText = "Scanning...";
+        
+        try {
+            // Hamari Flask API ko data bhej rahe hain
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ features: featuresArray })
+            });
+
+            const result = await response.json();
+            
+            // Result show karna
+            const resultCard = document.getElementById('resultCard');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            resultCard.style.display = 'block';
+            document.getElementById('predCode').innerText = result.prediction_code;
+            statusBadge.innerText = result.status;
+
+            if(result.status === 'Malicious') {
+                resultCard.className = 'result-card malicious';
+                statusBadge.className = 'status-badge badge-malicious';
+                document.getElementById('aiExplanation').innerHTML = `<strong>🤖 Gemini Analysis:</strong><br>${result.ai_explanation}`;
+            } else {
+                resultCard.className = 'result-card safe';
+                statusBadge.className = 'status-badge badge-safe';
+                document.getElementById('aiExplanation').innerHTML = "";
+            }
+        } catch (error) {
+            alert("Error connecting to server. Is app.py running?");
+        } finally {
+            document.getElementById('scanBtn').innerText = "Scan Traffic";
+        }
+    }
+</script>
+
 </body>
 </html>
