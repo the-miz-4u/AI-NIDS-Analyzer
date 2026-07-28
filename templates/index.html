@@ -107,6 +107,8 @@
         
         <div class="buttons">
             <button id="loadSampleBtn" onclick="loadSample()">Load Sample Attack</button>
+            <!-- Ye naya button add kiya hai -->
+            <button id="loadSafeBtn" onclick="loadSafeSample()" style="background-color: #58a6ff; color: white;">Load Safe Traffic</button>
             <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
         </div>
     </div>
@@ -123,6 +125,10 @@
     // Ye function dummy data box mein daal dega taaki bar-bar type na karna pade
     function loadSample() {
         document.getElementById('packetData').value = "17, 49830, 4, 0, 2048, 0, 512.0, 0.0, 80.2, 0.0, 16610.0, 0.0, 16610.0, 80.2, 41062.4";
+    }
+    // Ye function Safe traffic ka dummy data daal dega
+    function loadSafeSample() {
+        document.getElementById('packetData').value = "6, 80, 2, 0, 1024, 0, 256.0, 0.0, 40.0, 0.0, 8000.0, 0.0, 8000.0, 40.0, 20000.0";
     }
 
     async function analyzeTraffic() {
