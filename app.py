@@ -22,6 +22,28 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 def home():
     return render_template('index.html')
 
+@app.route('/get_live_traffic', methods=['GET'])
+def get_live_traffic():
+    # Humne yahan CSV se nikal kar kuch real attack aur normal traffic ke packets daale hain
+    live_packets = [
+        # 🔴 DrDoS DNS Attack packet 1
+        [17, 49830, 4, 0, 2048, 0, 512.0, 0.0, 80.2, 0.0, 16610.0, 0.0, 16610.0, 80.2, 41062.4],
+        # 🟢 Normal/Safe Traffic packet 1
+        [6, 80, 2, 0, 1024, 0, 256.0, 0.0, 40.0, 0.0, 8000.0, 0.0, 8000.0, 40.0, 20000.0],
+        # 🔴 DrDoS Variation packet 2
+        [17, 53, 10, 0, 4096, 0, 1024.0, 0.0, 120.5, 0.0, 30000.0, 0.0, 30000.0, 120.5, 80000.0],
+        # 🟢 Normal/Safe Traffic packet 2
+        [6, 443, 3, 1, 1500, 200, 500.0, 66.6, 50.0, 10.0, 5000.0, 1000.0, 6000.0, 45.0, 15000.0]
+    ]
+    
+    # Randomly inme se koi ek packet select karega
+    import random
+    selected_packet = random.choice(live_packets)
+    
+    # List ko string (comma separated) banakar bhej rahe hain taaki textarea mein fit ho jaye
+    packet_string = ", ".join(map(str, selected_packet))
+    return jsonify({'raw_data': packet_string})
+
 @app.route('/predict', methods=['POST'])
 def predict_traffic():
     try:

@@ -105,10 +105,14 @@
         <label for="packetData"><strong>Raw Network Features (Comma separated numerical values):</strong></label><br><br>
         <textarea id="packetData" placeholder="Enter 15 network features here..."></textarea>
         
-        <div class="buttons">
+
+       <div class="buttons">
             <button id="loadSampleBtn" onclick="loadSample()">Load Sample Attack</button>
-            <!-- Ye naya button add kiya hai -->
             <button id="loadSafeBtn" onclick="loadSafeSample()" style="background-color: #58a6ff; color: white;">Load Safe Traffic</button>
+            
+            <!-- Naya Live Intercept Button -->
+            <button id="liveBtn" onclick="fetchLiveTraffic()" style="background-color: #d29922; color: black; font-weight: 900;">⚡ Intercept Live Traffic</button>
+            
             <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
         </div>
     </div>
@@ -174,6 +178,26 @@
             alert("Error connecting to server. Is app.py running?");
         } finally {
             document.getElementById('scanBtn').innerText = "Scan Traffic";
+        }
+    }
+    // Ye API se random live packet layega aur box mein bhar dega
+    async function fetchLiveTraffic() {
+        const btn = document.getElementById('liveBtn');
+        btn.innerText = "Intercepting...";
+        
+        try {
+            const response = await fetch('/get_live_traffic');
+            const data = await response.json();
+            
+            // Textarea mein data daalna
+            document.getElementById('packetData').value = data.raw_data;
+            
+            // UI effect ke liye chota sa alert ya reset
+            document.getElementById('resultCard').style.display = 'none';
+        } catch (error) {
+            alert("Live traffic intercept fail ho gaya!");
+        } finally {
+            btn.innerText = "⚡ Intercept Live Traffic";
         }
     }
 </script>
