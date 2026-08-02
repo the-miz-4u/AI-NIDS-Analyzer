@@ -81,6 +81,8 @@
         #loadSafeBtn:hover { background-color: #79c0ff; }
         #liveBtn { background-color: #d29922; color: black; font-weight: 900; flex: 1;}
         #liveBtn:hover { background-color: #e3b341; }
+        #clearBtn { background-color: #21262d; color: #c9d1d9; border: 1px solid #30363d; flex: 1;}
+        #clearBtn:hover { background-color: #30363d; }
         
         .result-card {
             display: none;
@@ -114,6 +116,13 @@
             width: 100%;
             margin-top: 20px;
         }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #8b949e;
+            font-size: 14px;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +141,7 @@
                     <button id="loadSampleBtn" onclick="loadSample()">Load Attack</button>
                     <button id="loadSafeBtn" onclick="loadSafeSample()">Load Safe</button>
                     <button id="liveBtn" onclick="fetchLiveTraffic()">⚡ Live Intercept</button>
+                    <button id="clearBtn" onclick="clearDashboard()">🗑️ Clear</button>
                 </div>
                 <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
             </div>
@@ -156,6 +166,10 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="footer">
+    Developed with 💻 by Manish Sharma | B.Tech CSE (2023-2027)
 </div>
 
 <script>
@@ -228,6 +242,14 @@
         } finally {
             btn.innerText = "⚡ Live Intercept";
         }
+    }
+
+    // Dashboard reset karne ka function
+    function clearDashboard() {
+        document.getElementById('packetData').value = "";
+        document.getElementById('resultCard').style.display = 'none';
+        document.getElementById('downloadBtn').style.display = 'none';
+        document.getElementById('scanBtn').innerText = "Scan Traffic";
     }
 
     async function analyzeTraffic() {
