@@ -44,6 +44,8 @@
             border-radius: 5px;
             border: 1px solid #30363d;
             text-align: center;
+            display: flex;
+            flex-direction: column;
         }
         .input-section {
             margin-bottom: 25px;
@@ -112,10 +114,46 @@
         }
         .chart-container {
             position: relative;
-            height: 200px;
+            height: 180px;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
+        
+        /* Threat Log Table CSS */
+        .log-container {
+            margin-top: 20px;
+            flex-grow: 1;
+            max-height: 180px;
+            overflow-y: auto;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: #30363d #010409;
+        }
+        .log-container::-webkit-scrollbar { width: 6px; }
+        .log-container::-webkit-scrollbar-track { background: #010409; }
+        .log-container::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 10px; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+        }
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+        th {
+            background-color: #21262d;
+            position: sticky;
+            top: 0;
+            color: #c9d1d9;
+        }
+        .text-safe { color: #238636; font-weight: bold; }
+        .text-malicious { color: #da3633; font-weight: bold; }
+        
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -157,12 +195,29 @@
             </div>
         </div>
 
-        <!-- Right Panel: Live Statistics -->
+        <!-- Right Panel: Live Statistics & Threat Logs -->
         <div class="stats-panel">
-            <h3>📊 Live Traffic Stats</h3>
-            <p>Total Scanned: <strong id="totalCount" style="color: #58a6ff;">0</strong></p>
+            <h3 style="margin-top: 0;">📊 Live Traffic Stats</h3>
+            <p style="margin: 5px 0;">Total Scanned: <strong id="totalCount" style="color: #58a6ff;">0</strong></p>
             <div class="chart-container">
                 <canvas id="trafficChart"></canvas>
+            </div>
+            
+            <!-- Naya Threat Log Table -->
+            <h4 style="margin: 15px 0 5px 0; border-top: 1px solid #30363d; padding-top: 10px;">📜 Live Threat Log</h4>
+            <div class="log-container">
+                <table id="threatLogTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="threatLogBody">
+                        <!-- Naye logs yahan javascript se add honge -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -196,7 +251,8 @@
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    labels: { color: '#c9d1d9' }
+                    labels: { color: '#c9d1d9' },
+                    position: 'bottom'
                 }
             }
         }
@@ -216,6 +272,28 @@
         trafficChart.update();
     }
 
+    // Add entry to Threat Log Table
+    function addLogEntry(status) {
+        const tbody = document.getElementById('threatLogBody');
+        const row = document.createElement('tr');
+        
+        const time = new Date().toLocaleTimeString();
+        let statusHtml, actionHtml;
+        
+        if (status === 'Malicious') {
+            statusHtml = `<span class="text-malicious">🔴 Malicious</span>`;
+            actionHtml = `<span class="text-malicious">Blocked</span>`;
+        } else {
+            statusHtml = `<span class="text-safe">🟢 Safe</span>`;
+            actionHtml = `<span class="text-safe">Allowed</span>`;
+        }
+        
+        row.innerHTML = `<td>${time}</td><td>${statusHtml}</td><td>${actionHtml}</td>`;
+        
+        // Naya log sabse upar add karne ke liye
+        tbody.insertBefore(row, tbody.firstChild);
+    }
+
     function loadSample() {
         document.getElementById('packetData').value = "17, 49830, 4, 0, 2048, 0, 512.0, 0.0, 80.2, 0.0, 16610.0, 0.0, 16610.0, 80.2, 41062.4";
     }
@@ -231,10 +309,7 @@
             const response = await fetch('/get_live_traffic');
             const data = await response.json();
             
-            // Textarea mein data daalna
             document.getElementById('packetData').value = data.raw_data;
-            
-            // UI reset karna scan se pehle
             document.getElementById('resultCard').style.display = 'none';
             document.getElementById('downloadBtn').style.display = 'none';
         } catch (error) {
@@ -244,7 +319,7 @@
         }
     }
 
-    // Dashboard reset karne ka function
+    // Dashboard reset karne ka function (ab ye logs aur stats ko reset nahi karega taaki history bani rahe)
     function clearDashboard() {
         document.getElementById('packetData').value = "";
         document.getElementById('resultCard').style.display = 'none';
@@ -274,7 +349,7 @@
             const statusBadge = document.getElementById('statusBadge');
             
             resultCard.style.display = 'block';
-            document.getElementById('downloadBtn').style.display = 'block'; // Download button show karna
+            document.getElementById('downloadBtn').style.display = 'block';
             document.getElementById('predCode').innerText = result.prediction_code;
             statusBadge.innerText = result.status;
 
@@ -282,12 +357,14 @@
                 resultCard.className = 'result-card malicious';
                 statusBadge.className = 'status-badge badge-malicious';
                 document.getElementById('aiExplanation').innerHTML = `<strong>🤖 Gemini Analysis:</strong><br>${result.ai_explanation}`;
-                updateStats(true); // Update graph for Malicious
+                updateStats(true);
+                addLogEntry('Malicious'); // Log add kiya
             } else {
                 resultCard.className = 'result-card safe';
                 statusBadge.className = 'status-badge badge-safe';
                 document.getElementById('aiExplanation').innerHTML = "";
-                updateStats(false); // Update graph for Safe
+                updateStats(false);
+                addLogEntry('Safe'); // Log add kiya
             }
         } catch (error) {
             alert("Error connecting to server. Is app.py running?");
@@ -296,7 +373,6 @@
         }
     }
 
-    // Report download karne ka function
     function downloadReport() {
         const status = document.getElementById('statusBadge').innerText;
         const code = document.getElementById('predCode').innerText;
@@ -306,7 +382,6 @@
 
         const reportContent = `====================================\n🛡️ AI-NIDS INCIDENT REPORT\n====================================\n\n🕒 Date & Time: ${timestamp}\n🚨 Status: ${status}\n🔢 Prediction Code: ${code}\n\n📦 [RAW PACKET FEATURES]\n${packet}\n\n🤖 [AI ANALYSIS & MITIGATION]\n${aiText}\n\n====================================\nGenerated by AI-NIDS Analyzer`;
 
-        // Text file banakar browser se download karwana
         const blob = new Blob([reportContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
