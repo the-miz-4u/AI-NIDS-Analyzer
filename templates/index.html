@@ -176,10 +176,10 @@
                 <textarea id="packetData" placeholder="Enter 15 network features here..."></textarea>
                 
                 <div class="buttons">
-                    <button id="loadSampleBtn" onclick="loadSample()">Load Attack</button>
-                    <button id="loadSafeBtn" onclick="loadSafeSample()">Load Safe</button>
-                    <button id="liveBtn" onclick="fetchLiveTraffic()">⚡ Live Intercept</button>
-                    <button id="clearBtn" onclick="clearDashboard()">🗑️ Clear</button>
+                    <button id="loadSampleBtn" onclick="loadSample()" title="Auto-fill malicious DrDoS attack packet">Load Attack</button>
+<button id="loadSafeBtn" onclick="loadSafeSample()" title="Auto-fill normal benign traffic packet">Load Safe</button>
+<button id="liveBtn" onclick="fetchLiveTraffic()" title="Fetch a random packet from live dataset">⚡ Live Intercept</button>
+<button id="clearBtn" onclick="clearDashboard()" title="Reset the dashboard inputs">🗑️ Clear</button>
                 </div>
                 <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
             </div>
