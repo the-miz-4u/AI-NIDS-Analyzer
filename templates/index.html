@@ -96,6 +96,12 @@
         }
         .malicious { border-left-color: #da3633; }
         .safe { border-left-color: #238636; }
+        
+        @keyframes pulse-danger {
+            0% { box-shadow: 0 0 0 0 rgba(218, 54, 51, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(218, 54, 51, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(218, 54, 51, 0); }
+        }
         .status-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -103,8 +109,9 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-        .badge-malicious { background-color: #da3633; color: white; }
+        .badge-malicious { background-color: #da3633; color: white; animation: pulse-danger 1.5s infinite; }
         .badge-safe { background-color: #238636; color: white; }
+        
         #aiExplanation {
             color: #ff7b72;
             font-style: italic;
@@ -177,9 +184,9 @@
                 
                 <div class="buttons">
                     <button id="loadSampleBtn" onclick="loadSample()" title="Auto-fill malicious DrDoS attack packet">Load Attack</button>
-<button id="loadSafeBtn" onclick="loadSafeSample()" title="Auto-fill normal benign traffic packet">Load Safe</button>
-<button id="liveBtn" onclick="fetchLiveTraffic()" title="Fetch a random packet from live dataset">⚡ Live Intercept</button>
-<button id="clearBtn" onclick="clearDashboard()" title="Reset the dashboard inputs">🗑️ Clear</button>
+                    <button id="loadSafeBtn" onclick="loadSafeSample()" title="Auto-fill normal benign traffic packet">Load Safe</button>
+                    <button id="liveBtn" onclick="fetchLiveTraffic()" title="Fetch a random packet from live dataset">⚡ Live Intercept</button>
+                    <button id="clearBtn" onclick="clearDashboard()" title="Reset the dashboard inputs">🗑️ Clear</button>
                 </div>
                 <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
             </div>
@@ -203,7 +210,7 @@
                 <canvas id="trafficChart"></canvas>
             </div>
             
-            <!-- Naya Threat Log Table -->
+            <!-- Threat Log Table -->
             <h4 style="margin: 15px 0 5px 0; border-top: 1px solid #30363d; padding-top: 10px;">📜 Live Threat Log</h4>
             <div class="log-container">
                 <table id="threatLogTable">
@@ -215,7 +222,7 @@
                         </tr>
                     </thead>
                     <tbody id="threatLogBody">
-                        <!-- Naye logs yahan javascript se add honge -->
+                        <!-- Logs added via JS -->
                     </tbody>
                 </table>
             </div>
@@ -228,12 +235,10 @@
 </div>
 
 <script>
-    // Variables for tracking stats
     let safeCount = 0;
     let maliciousCount = 0;
     let totalCount = 0;
 
-    // Initialize Chart.js
     const ctx = document.getElementById('trafficChart').getContext('2d');
     const trafficChart = new Chart(ctx, {
         type: 'doughnut',
@@ -258,7 +263,6 @@
         }
     });
 
-    // Update Chart Function
     function updateStats(isMalicious) {
         totalCount++;
         if (isMalicious) {
@@ -272,7 +276,6 @@
         trafficChart.update();
     }
 
-    // Add entry to Threat Log Table
     function addLogEntry(status) {
         const tbody = document.getElementById('threatLogBody');
         const row = document.createElement('tr');
@@ -289,8 +292,6 @@
         }
         
         row.innerHTML = `<td>${time}</td><td>${statusHtml}</td><td>${actionHtml}</td>`;
-        
-        // Naya log sabse upar add karne ke liye
         tbody.insertBefore(row, tbody.firstChild);
     }
 
@@ -319,7 +320,6 @@
         }
     }
 
-    // Dashboard reset karne ka function (ab ye logs aur stats ko reset nahi karega taaki history bani rahe)
     function clearDashboard() {
         document.getElementById('packetData').value = "";
         document.getElementById('resultCard').style.display = 'none';
@@ -358,13 +358,13 @@
                 statusBadge.className = 'status-badge badge-malicious';
                 document.getElementById('aiExplanation').innerHTML = `<strong>🤖 Gemini Analysis:</strong><br>${result.ai_explanation}`;
                 updateStats(true);
-                addLogEntry('Malicious'); // Log add kiya
+                addLogEntry('Malicious');
             } else {
                 resultCard.className = 'result-card safe';
                 statusBadge.className = 'status-badge badge-safe';
                 document.getElementById('aiExplanation').innerHTML = "";
                 updateStats(false);
-                addLogEntry('Safe'); // Log add kiya
+                addLogEntry('Safe');
             }
         } catch (error) {
             alert("Error connecting to server. Is app.py running?");
