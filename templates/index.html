@@ -186,6 +186,7 @@
                     <button id="loadSampleBtn" onclick="loadSample()" title="Auto-fill malicious DrDoS attack packet">Load Attack</button>
                     <button id="loadSafeBtn" onclick="loadSafeSample()" title="Auto-fill normal benign traffic packet">Load Safe</button>
                     <button id="liveBtn" onclick="fetchLiveTraffic()" title="Fetch a random packet from live dataset">⚡ Live Intercept</button>
+                    <button id="autoScanBtn" onclick="toggleAutoScan()" style="background-color: #8957e5; color: white; flex: 1;" title="Simulate continuous live traffic monitoring">▶️ Auto-Scan</button>
                     <button id="clearBtn" onclick="clearDashboard()" title="Reset the dashboard inputs">🗑️ Clear</button>
                 </div>
                 <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
@@ -391,6 +392,41 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+    // Auto-Scan Variables and Logic
+    let isAutoScanning = false;
+    let autoScanTimer = null;
+
+    async function runAutoScanCycle() {
+        if (!isAutoScanning) return;
+        
+        // Pehle packet fetch karo
+        await fetchLiveTraffic();
+        
+        // Phir usko scan karo
+        await analyzeTraffic();
+        
+        // Agar abhi bhi scanning ON hai, toh 3 second baad fir repeat karo
+        if (isAutoScanning) {
+            autoScanTimer = setTimeout(runAutoScanCycle, 3000);
+        }
+    }
+
+    function toggleAutoScan() {
+        const btn = document.getElementById('autoScanBtn');
+        if (!isAutoScanning) {
+            // Start Auto-Scan
+            isAutoScanning = true;
+            btn.innerHTML = "🛑 Stop Scan";
+            btn.style.backgroundColor = "#da3633"; // Red color jab active ho
+            runAutoScanCycle();
+        } else {
+            // Stop Auto-Scan
+            isAutoScanning = false;
+            clearTimeout(autoScanTimer);
+            btn.innerHTML = "▶️ Auto-Scan";
+            btn.style.backgroundColor = "#8957e5"; // Wapas purple color
+        }
     }
 </script>
 
