@@ -212,7 +212,11 @@
             </div>
             
             <!-- Threat Log Table -->
-            <h4 style="margin: 15px 0 5px 0; border-top: 1px solid #30363d; padding-top: 10px;">📜 Live Threat Log</h4>
+            <!-- Threat Log Table -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #30363d; margin-top: 15px; padding-top: 10px; margin-bottom: 5px;">
+                <h4 style="margin: 0;">📜 Live Threat Log</h4>
+                <button onclick="exportTableToCSV()" style="background-color: #21262d; color: #58a6ff; border: 1px solid #30363d; padding: 4px 8px; font-size: 12px;" title="Download logs as Excel/CSV file">📥 Export CSV</button>
+            </div>
             <div class="log-container">
                 <table id="threatLogTable">
                     <thead>
@@ -427,6 +431,34 @@
             btn.innerHTML = "▶️ Auto-Scan";
             btn.style.backgroundColor = "#8957e5"; // Wapas purple color
         }
+    }
+    // Export Threat Logs to CSV
+    function exportTableToCSV() {
+        let csv = [];
+        let rows = document.querySelectorAll("#threatLogTable tr");
+        
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll("td, th");
+            
+            for (let j = 0; j < cols.length; j++) {
+                // Table ke andar ka text nikal kar clean karna
+                let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").trim();
+                // Emojis hatane ke liye (taki excel mein clean aaye)
+                data = data.replace(/[🔴🟢]/g, "").trim();
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(","));
+        }
+
+        // CSV file generate aur download karwana
+        let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+        let downloadLink = document.createElement("a");
+        downloadLink.download = `Threat_Logs_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     }
 </script>
 
