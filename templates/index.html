@@ -364,7 +364,9 @@
                 document.getElementById('aiExplanation').innerHTML = `<strong>🤖 Gemini Analysis:</strong><br>${result.ai_explanation}`;
                 updateStats(true);
                 addLogEntry('Malicious');
+                playWarningSound(); // <--- YEH NAYI LINE ADD KARNI HAI
             } else {
+                // baaki purana safe wala code...
                 resultCard.className = 'result-card safe';
                 statusBadge.className = 'status-badge badge-safe';
                 document.getElementById('aiExplanation').innerHTML = "";
@@ -459,6 +461,32 @@
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
+    }
+    // 🔥 Audio Warning Sound (Generated via Web Audio API)
+    function playWarningSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sawtooth'; // 'sawtooth' se alarm jaisi aawaz aati hai
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); 
+            oscillator.frequency.linearRampToValueAtTime(900, audioCtx.currentTime + 0.2); // Frequency change for siren feel
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volume set kiya hai
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); // Fade out
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {
+            console.log("Audio play failed:", e);
+        }
     }
 </script>
 
