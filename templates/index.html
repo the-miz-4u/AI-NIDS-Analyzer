@@ -168,6 +168,7 @@
             font-size: 14px;
             padding-bottom: 20px;
         }
+
         /* Toast Notification CSS */
         #toast {
             visibility: hidden;
@@ -193,6 +194,40 @@
             transform: translateX(0);
             transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), visibility 0s linear 0s;
         }
+
+        /* Model Info Modal CSS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(1, 4, 9, 0.8);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 400px;
+            color: #c9d1d9;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            cursor: pointer;
+            color: #ff7b72;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .modal-content h3 { color: #58a6ff; margin-top: 0; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .modal-content ul { list-style-type: none; padding: 0; }
+        .modal-content li { margin-bottom: 12px; font-size: 14px; }
+        .modal-content li strong { color: #8957e5; }
     </style>
 </head>
 <body>
@@ -211,7 +246,11 @@
                     <button id="loadSampleBtn" onclick="loadSample()" title="Auto-fill malicious DrDoS attack packet">Load Attack</button>
                     <button id="loadSafeBtn" onclick="loadSafeSample()" title="Auto-fill normal benign traffic packet">Load Safe</button>
                     <button id="liveBtn" onclick="fetchLiveTraffic()" title="Fetch a random packet from live dataset">⚡ Live Intercept</button>
+                    
+                    <!-- Auto-Scan & Info Buttons -->
                     <button id="autoScanBtn" onclick="toggleAutoScan()" style="background-color: #8957e5; color: white; flex: 1;" title="Simulate continuous live traffic monitoring">▶️ Auto-Scan</button>
+                    <button id="infoBtn" onclick="openModal()" style="background-color: #238636; color: white; flex: 1;" title="View System & Model Architecture">ℹ️ System Info</button>
+                    
                     <button id="clearBtn" onclick="clearDashboard()" title="Reset the dashboard inputs">🗑️ Clear</button>
                 </div>
                 <button id="scanBtn" onclick="analyzeTraffic()">Scan Traffic</button>
@@ -236,12 +275,12 @@
                 <canvas id="trafficChart"></canvas>
             </div>
             
-            <!-- Threat Log Table -->
-            <!-- Threat Log Table -->
+            <!-- Threat Log Table Header with CSV Export -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #30363d; margin-top: 15px; padding-top: 10px; margin-bottom: 5px;">
                 <h4 style="margin: 0;">📜 Live Threat Log</h4>
                 <button onclick="exportTableToCSV()" style="background-color: #21262d; color: #58a6ff; border: 1px solid #30363d; padding: 4px 8px; font-size: 12px;" title="Download logs as Excel/CSV file">📥 Export CSV</button>
             </div>
+            
             <div class="log-container">
                 <table id="threatLogTable">
                     <thead>
@@ -264,10 +303,31 @@
     Developed with 💻 by Manish Sharma | B.Tech CSE (2023-2027) • <b>v1.0.1</b>
 </div>
 
+<!-- Admin Alert Toast -->
+<div id="toast">🚨 High Threat Detected! Alert Sent to Admin.</div>
+
+<!-- System Info Modal -->
+<div id="infoModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">×</span>
+        <h3>⚙️ AI-NIDS Architecture</h3>
+        <ul>
+            <li><strong>Algorithm:</strong> Random Forest Classifier</li>
+            <li><strong>LLM Engine:</strong> Google Gemini API</li>
+            <li><strong>Dataset:</strong> CIC-DDoS2019 (Processed)</li>
+            <li><strong>Accuracy:</strong> 99.85%</li>
+            <li><strong>Features Scanned:</strong> 15 Key Network Metrics</li>
+            <li><strong>Status:</strong> <span style="color: #238636;">Active & Monitoring</span></li>
+        </ul>
+    </div>
+</div>
+
 <script>
     let safeCount = 0;
     let maliciousCount = 0;
     let totalCount = 0;
+    let isAutoScanning = false;
+    let autoScanTimer = null;
 
     const ctx = document.getElementById('trafficChart').getContext('2d');
     const trafficChart = new Chart(ctx, {
@@ -350,11 +410,79 @@
         }
     }
 
+    // Auto-Scan Logic
+    async function runAutoScanCycle() {
+        if (!isAutoScanning) return;
+        await fetchLiveTraffic();
+        await analyzeTraffic();
+        if (isAutoScanning) {
+            autoScanTimer = setTimeout(runAutoScanCycle, 3000);
+        }
+    }
+
+    function toggleAutoScan() {
+        const btn = document.getElementById('autoScanBtn');
+        if (!isAutoScanning) {
+            isAutoScanning = true;
+            btn.innerHTML = "🛑 Stop Scan";
+            btn.style.backgroundColor = "#da3633";
+            runAutoScanCycle();
+        } else {
+            isAutoScanning = false;
+            clearTimeout(autoScanTimer);
+            btn.innerHTML = "▶️ Auto-Scan";
+            btn.style.backgroundColor = "#8957e5";
+        }
+    }
+
     function clearDashboard() {
         document.getElementById('packetData').value = "";
         document.getElementById('resultCard').style.display = 'none';
         document.getElementById('downloadBtn').style.display = 'none';
         document.getElementById('scanBtn').innerText = "Scan Traffic";
+    }
+
+    // Modal Open/Close Logic
+    function openModal() {
+        document.getElementById('infoModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+
+    // Audio Warning Sound Logic
+    function playWarningSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sawtooth'; 
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); 
+            oscillator.frequency.linearRampToValueAtTime(900, audioCtx.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); 
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {
+            console.log("Audio play failed:", e);
+        }
+    }
+
+    // Show Toast Notification Logic
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "show";
+        setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3500);
     }
 
     async function analyzeTraffic() {
@@ -389,10 +517,9 @@
                 document.getElementById('aiExplanation').innerHTML = `<strong>🤖 Gemini Analysis:</strong><br>${result.ai_explanation}`;
                 updateStats(true);
                 addLogEntry('Malicious');
-                playWarningSound(); // <--- YEH NAYI LINE ADD KARNI HAI
+                playWarningSound();
                 showToast();
             } else {
-                // baaki purana safe wala code...
                 resultCard.className = 'result-card safe';
                 statusBadge.className = 'status-badge badge-safe';
                 document.getElementById('aiExplanation').innerHTML = "";
@@ -425,42 +552,8 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-    // Auto-Scan Variables and Logic
-    let isAutoScanning = false;
-    let autoScanTimer = null;
 
-    async function runAutoScanCycle() {
-        if (!isAutoScanning) return;
-        
-        // Pehle packet fetch karo
-        await fetchLiveTraffic();
-        
-        // Phir usko scan karo
-        await analyzeTraffic();
-        
-        // Agar abhi bhi scanning ON hai, toh 3 second baad fir repeat karo
-        if (isAutoScanning) {
-            autoScanTimer = setTimeout(runAutoScanCycle, 3000);
-        }
-    }
-
-    function toggleAutoScan() {
-        const btn = document.getElementById('autoScanBtn');
-        if (!isAutoScanning) {
-            // Start Auto-Scan
-            isAutoScanning = true;
-            btn.innerHTML = "🛑 Stop Scan";
-            btn.style.backgroundColor = "#da3633"; // Red color jab active ho
-            runAutoScanCycle();
-        } else {
-            // Stop Auto-Scan
-            isAutoScanning = false;
-            clearTimeout(autoScanTimer);
-            btn.innerHTML = "▶️ Auto-Scan";
-            btn.style.backgroundColor = "#8957e5"; // Wapas purple color
-        }
-    }
-    // Export Threat Logs to CSV
+    // Export Threat Logs to CSV Logic
     function exportTableToCSV() {
         let csv = [];
         let rows = document.querySelectorAll("#threatLogTable tr");
@@ -469,16 +562,13 @@
             let row = [], cols = rows[i].querySelectorAll("td, th");
             
             for (let j = 0; j < cols.length; j++) {
-                // Table ke andar ka text nikal kar clean karna
                 let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, "").trim();
-                // Emojis hatane ke liye (taki excel mein clean aaye)
                 data = data.replace(/[🔴🟢]/g, "").trim();
                 row.push('"' + data + '"');
             }
             csv.push(row.join(","));
         }
 
-        // CSV file generate aur download karwana
         let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
         let downloadLink = document.createElement("a");
         downloadLink.download = `Threat_Logs_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
@@ -488,42 +578,7 @@
         downloadLink.click();
         document.body.removeChild(downloadLink);
     }
-    // 🔥 Audio Warning Sound (Generated via Web Audio API)
-    function playWarningSound() {
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
-            
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-
-            oscillator.type = 'sawtooth'; // 'sawtooth' se alarm jaisi aawaz aati hai
-            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); 
-            oscillator.frequency.linearRampToValueAtTime(900, audioCtx.currentTime + 0.2); // Frequency change for siren feel
-            
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // Volume set kiya hai
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); // Fade out
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.5);
-        } catch (e) {
-            console.log("Audio play failed:", e);
-        }
-    }
-    // Show Toast Notification
-    function showToast() {
-        const toast = document.getElementById("toast");
-        toast.className = "show";
-        // 3.5 second baad apne aap hide ho jayega
-        setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3500);
-    }
 </script>
-<!-- Admin Alert Toast -->
-<div id="toast">🚨 High Threat Detected! Alert Sent to Admin.</div>
 
 </body>
 </html>
