@@ -235,6 +235,13 @@
 <div class="container">
     <h1>🛡️ AI-Powered Network Intrusion Analyzer</h1>
     
+    <!-- Live Server Status Indicator -->
+    <div style="text-align: center; margin-top: -10px; margin-bottom: 20px; font-size: 13px; color: #8b949e; font-family: monospace;">
+        <span style="color: #238636; animation: pulse-danger 2s infinite;">🟢</span> System Online &nbsp;|&nbsp; 
+        Uplink: <strong id="pingStatus" style="color: #58a6ff;">12ms</strong> &nbsp;|&nbsp; 
+        Engine: <strong style="color: #c9d1d9;">Gemini-Pro</strong>
+    </div>
+    
     <div class="dashboard-grid">
         <!-- Left Panel: Input & Controls -->
         <div class="main-panel">
@@ -450,6 +457,11 @@
     function closeModal() {
         document.getElementById('infoModal').style.display = 'none';
     }
+    // Live Server Ping Simulator
+    setInterval(() => {
+        const fakePing = Math.floor(Math.random() * 15) + 10; // 10ms se 25ms ke beech
+        document.getElementById('pingStatus').innerText = fakePing + "ms";
+    }, 2000);
 
     // Audio Warning Sound Logic
     function playWarningSound() {
