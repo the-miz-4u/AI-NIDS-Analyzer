@@ -84,8 +84,6 @@ Follow these steps to run the NIDS Analyzer locally on your machine.
 4.  **Scan Traffic:** Submits the data to the ML model. If a threat is detected, it triggers the Gemini AI, updates the Live Stats chart, and logs the event in the Threat History table.
 5.  **📄 Download Report:** Generate and download a detailed log file of any detected intrusion.
 6.  **🗑️ Clear:** Resets the input fields and AI analysis without deleting your session's threat history.
-   
-
 ---
 
 ## 📜 License & Disclaimer
